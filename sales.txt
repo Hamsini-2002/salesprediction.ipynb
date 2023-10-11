@@ -1,0 +1,205 @@
+
+
+from google.colab import drive
+drive.mount('/content/gdrive')
+     
+Mounted at /content/gdrive
+
+import pandas as pd
+import numpy as np
+     
+
+df = pd.read_csv("/content/gdrive/MyDrive/Advertising.csv")
+     
+
+import seaborn as sns				# Statistical data visualization
+import matplotlib.pyplot as plt		# data visualisation
+%matplotlib inline
+     
+
+df.shape
+
+     
+(200, 5)
+
+df.head()
+
+     
+Unnamed: 0	TV	Radio	Newspaper	Sales
+0	1	230.1	37.8	69.2	22.1
+1	2	44.5	39.3	45.1	10.4
+2	3	17.2	45.9	69.3	9.3
+3	4	151.5	41.3	58.5	18.5
+4	5	180.8	10.8	58.4	12.9
+
+df.tail()
+
+     
+Unnamed: 0	TV	Radio	Newspaper	Sales
+195	196	38.2	3.7	13.8	7.6
+196	197	94.2	4.9	8.1	9.7
+197	198	177.0	9.3	6.4	12.8
+198	199	283.6	42.0	66.2	25.5
+199	200	232.1	8.6	8.7	13.4
+
+df.info()
+     
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 200 entries, 0 to 199
+Data columns (total 5 columns):
+ #   Column      Non-Null Count  Dtype  
+---  ------      --------------  -----  
+ 0   Unnamed: 0  200 non-null    int64  
+ 1   TV          200 non-null    float64
+ 2   Radio       200 non-null    float64
+ 3   Newspaper   200 non-null    float64
+ 4   Sales       200 non-null    float64
+dtypes: float64(4), int64(1)
+memory usage: 7.9 KB
+
+df.describe()
+     
+Unnamed: 0	TV	Radio	Newspaper	Sales
+count	200.000000	200.000000	200.000000	200.000000	200.000000
+mean	100.500000	147.042500	23.264000	30.554000	14.022500
+std	57.879185	85.854236	14.846809	21.778621	5.217457
+min	1.000000	0.700000	0.000000	0.300000	1.600000
+25%	50.750000	74.375000	9.975000	12.750000	10.375000
+50%	100.500000	149.750000	22.900000	25.750000	12.900000
+75%	150.250000	218.825000	36.525000	45.100000	17.400000
+max	200.000000	296.400000	49.600000	114.000000	27.000000
+
+sns.heatmap(df.isnull(), yticklabels = False, cbar = False, cmap = 'Blues' )
+     
+<Axes: >
+
+
+df.isnull().sum()
+     
+Unnamed: 0    0
+TV            0
+Radio         0
+Newspaper     0
+Sales         0
+dtype: int64
+
+# Outlier Analysis
+
+fig, axs = plt.subplots(3, figsize = (5,5))
+plt1 = sns.boxplot(df['TV'], ax = axs[0])
+plt2 = sns.boxplot(df['Newspaper'], ax = axs[1])
+plt3 = sns.boxplot(df['Radio'], ax = axs[2])
+plt.tight_layout()
+     
+
+
+sns.boxplot(df['Sales'])
+plt.show()
+
+     
+
+
+# to check all variables at once
+
+df.hist( bins = 10, figsize = (10,10))
+plt.show()
+
+     
+
+
+sns.pairplot(df, size=2.5)
+plt.show()
+     
+/usr/local/lib/python3.10/dist-packages/seaborn/axisgrid.py:2095: UserWarning: The `size` parameter has been renamed to `height`; please update your code.
+  warnings.warn(msg, UserWarning)
+
+
+# Calculate correlations
+corr = df.corr()
+
+# Heatmap
+sns.heatmap(corr,  annot=True, fmt=".2f")
+
+     
+<Axes: >
+
+
+### Define X&Y ###
+
+X = df.iloc[:, :-1].values
+y = df.iloc[:, -1].values
+
+     
+
+### Splitting Dataset ###
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y , test_size = 0.2, random_state = 42)
+
+     
+
+### Simple Linear Regression/ Multiple Linear Regression ###
+
+from sklearn.linear_model import LinearRegression
+regressor = LinearRegression( fit_intercept = True)
+
+regressor.fit(X_train, y_train)
+     
+LinearRegression()
+In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook.
+On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.
+
+y_pred = regressor.predict(X_test)
+
+     
+
+### RMSE ###
+
+from sklearn import metrics
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+     
+Root Mean Squared Error: 1.788576100865965
+
+### R-squared ###
+
+from sklearn.metrics import r2_score
+r2_score(y_test, y_pred)
+
+     
+0.8986489151417082
+
+import statsmodels.api as sm
+
+X2 = sm.add_constant(X)
+est = sm.OLS(y, X2)
+est2 = est.fit()
+print(est2.summary())
+     
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       0.897
+Model:                            OLS   Adj. R-squared:                  0.895
+Method:                 Least Squares   F-statistic:                     425.7
+Date:                Mon, 02 Oct 2023   Prob (F-statistic):           3.94e-95
+Time:                        05:20:05   Log-Likelihood:                -386.14
+No. Observations:                 200   AIC:                             782.3
+Df Residuals:                     195   BIC:                             798.8
+Df Model:                           4                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          3.0052      0.394      7.623      0.000       2.228       3.783
+x1            -0.0006      0.002     -0.276      0.783      -0.005       0.004
+x2             0.0458      0.001     32.725      0.000       0.043       0.049
+x3             0.1884      0.009     21.784      0.000       0.171       0.205
+x4            -0.0012      0.006     -0.210      0.834      -0.013       0.010
+==============================================================================
+Omnibus:                       60.267   Durbin-Watson:                   2.085
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              150.423
+Skew:                          -1.325   Prob(JB):                     2.17e-33
+Kurtosis:                       6.320   Cond. No.                         653.
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
